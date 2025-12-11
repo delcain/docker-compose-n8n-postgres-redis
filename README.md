@@ -41,4 +41,5 @@ Este repositório contém uma stack Docker completa para executar o [n8n](https:
 
 ---
 
-> **Mantenedor:** Seu Nome — [seu@email.com]
+> **Mantenedor:** Diego Fonseca Elcain ( Cuidado Digital ) — [contato[at]cuidadodigital.com.br]
+
