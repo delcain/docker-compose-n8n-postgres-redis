@@ -1,0 +1,104 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: ${TZ}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - redis_data:/data
+
+  editor:
+    image: n8nio/n8n:latest
+    restart: always
+    environment:
+      - TZ=${TZ}
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - N8N_RUNNERS_ENABLED=true
+      - OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=true
+      - N8N_EXPRESS_TRUST_PROXY=true
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE}
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "5678:5678"
+
+  webhook:
+    image: n8nio/n8n:latest
+    restart: always
+    command: webhook
+    environment:
+      - TZ=${TZ}
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - N8N_RUNNERS_ENABLED=true
+      - OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=true
+      - N8N_EXPRESS_TRUST_PROXY=true
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "5679:5678"
+
+  worker:
+    image: n8nio/n8n:latest
+    restart: always
+    command: worker
+    environment:
+      - TZ=${TZ}
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - N8N_RUNNERS_ENABLED=true
+      - OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=true
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  postgres_data:
+  redis_data:
+  n8n_data:
